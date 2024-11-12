@@ -1,0 +1,124 @@
+= awx-glpi-ee
+Antonio C. <sp38af (at) trikorasolutions (dot) com>
+:icons: font
+:revdate: {docdate}
+:stem: latexmath
+:toc: left
+:toclevels: 3
+:toc-title: Table of Contents
+:description: AWX Execution Environment for GLPI inventory.
+
+== Introduction
+
+[.lead]
+This project implements an 
+ link:https://ansible.readthedocs.io/projects/awx/en/latest/userguide/execution_environments.html[AWX Execution Environment] 
+ required to build an AWX inventory from a 
+ link:https://glpi-project.org/[GLPI] installation.
+
+== Requirements
+
+This project uses the work done at the link:https://github.com/unistra/ansible-collection-glpi[unistra/ansible-collection-glpi] 
+ GitHub project.
+
+== Installation
+
+[WARNING]
+====
+For the sake of brevity `awx` commands might be missing the authentication 
+ options throughout this document.
+
+[source,bash]
+----
+awx --conf.host <1>
+  --conf.username <2>
+  --conf.token <3>
+----
+<1> Hostname of the AWX installation
+<2> Username to connect authenticate agains AWX
+<3> Token for the provided user
+====
+
+
+== Create an Execution Environment
+
+[source,bash]
+----
+awx execution_environments create <1>
+  --name <2>
+  --image <3>
+  --description <4>
+  --pull <5>
+----
+<1> Command to create an Execution Environment
+<2> Name of the Execution Environent
+<3> Container image
+<4> Description of the EE
+<5> Pull options [,always,missing,never]
+
+Sample execution.
+
+[source,bash]
+----
+awx --conf.host http://awx.localdomain \
+  --conf.username janedoe \
+  --conf.token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+  execution_environments create \
+  --name "AWX trikorasolns GLPI ee" \
+  --image quay.io/trikorasolns/awx-ee-glpi:latest \
+  --description "GLPI inventory" \
+  --pull always
+----
+
+== Create a project for the inventory source
+
+[source,bash]
+----
+awx projects create \
+  --name "unistra/ansible-collection-glpi" \
+  --organization <ID> \
+  --scm_type git \
+  --scm_url https://github.com/unistra/ansible-collection-glpi.git
+----
+
+== Create the inventory
+
+Create the inventory.
+
+[source,bash]
+----
+awx inventories create \
+  --name glpi \
+  --organization <ID> \
+  --scm_type git \
+  --scm_url https://github.com/unistra/ansible-collection-glpi.git
+----
+
+Create the inventory source. The inventory ID is collected by the previous 
+ command.
+
+[source,bash]
+----
+awx inventory_sources create \
+  --name glpi-api \
+  --inventory <inventory_ID> \
+  --execution_environment <ExecutionEnvironment_ID> \
+  --source scm --source_project <Project_ID> \
+  --source_path "scripts/inventory/glpi-api.py" \
+  --enabled_var "glpi.glpi_state" --enabled_value "Operational" \
+  --source_vars '{"ANSIBLE_GLPI_URL": "http://glpi.localdomain/apirest.php/", "ANSIBLE_GLPI_APPTOKEN": "xxxxxxxxxxxxxxxxxxxxxxx", "ANSIBLE_GLPI_USERTOKEN": "yyyyyyyyyyyyyyyyyyyyyyy", "ANSIBLE_GLPI_FILE": "/runner/glpi-api.yml"}'
+----
+
+The prevous source variables are the following `yaml`.
+
+[source,yaml]
+----
+ANSIBLE_GLPI_URL: http://glpi.localdomain/apirest.php/ <1>
+ANSIBLE_GLPI_APPTOKEN: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx <2>
+ANSIBLE_GLPI_USERTOKEN: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx <3>
+ANSIBLE_GLPI_FILE: /runner/glpi-api.yml <4>
+----
+<1> GLPI API URL.
+<2> Application Token
+<3> User Token
+<4> Location of the glpi-api.yaml file

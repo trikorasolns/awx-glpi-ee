@@ -1,0 +1,71 @@
+= awx-glpi-ee Development Guide
+Antonio C. <sp38af (at) trikorasolutions (dot) com>
+:icons: font
+:revdate: {docdate}
+:stem: latexmath
+:toc: left
+:toclevels: 3
+:toc-title: Table of Contents
+:description: Instructions on how to make changes to this project.
+
+== Requirements
+
+This project uses the work done at the link:https://github.com/unistra/ansible-collection-glpi[unistra/ansible-collection-glpi] 
+ GitHub project.
+
+This required building an `yaml` file with the definition of the inventory structure. In 
+this project such file is the `glpi-api.yaml` file.
+
+To collect the GLPI field IDs use the following formula.
+
+Fetch a User Token and an APP Token from GLPI and export it using the 
+ `ANSIBLE_GLPI_USERTOKEN` and `ANSIBLE_GLPI_APPTOKEN` system variables.
+
+== Fetching GLPI fields
+
+Since building the `glpi-api.yaml` file requires GLPI field IDs these are 
+ the instructions on how to fetch them. 
+ 
+[TIP]
+====
+More information on the GLPI API is available 
+ link:https://github.com/glpi-project/glpi/blob/main/apirest.md[here].
+====
+
+[WARNING]
+====
+We will use a User Token and an APP Token in order to interact with the GLPI 
+ API.
+====
+
+Login into the GLPI API.
+
+[source,bash]
+----
+curl -X GET \
+-H 'Content-Type: application/json' \
+-H "Authorization: <user_token> " \
+-H "App-Token: <app_token>" \
+'http://glpi.localdomain/apirest.php/initSession'
+----
+
+This call will return a _session token_ that is required on all API calls.
+
+Fetch the field list using the `listSearchOptions` operation.
+
+[source,bash]
+----
+curl -X GET \
+-H 'Content-Type: application/json' \
+-H "Session-Token: " \
+-H "App-Token: " \
+'http://glpi.localdomain/apirest.php/listSearchOptions/Computer'
+----
+
+This will return a `YAML` with the GLPI field definition.
+
+== References
+
+* https://thedatabaseme.de/2022/09/09/self-build-awx-execution-environment/
+ 
+
