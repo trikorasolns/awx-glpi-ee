@@ -39,7 +39,6 @@ awx --conf.host <1>
 <3> Token for the provided user
 ====
 
-
 == Create an Execution Environment
 
 [source,bash]
@@ -109,7 +108,7 @@ awx inventory_sources create \
   --source_vars '{"ANSIBLE_GLPI_URL": "http://glpi.localdomain/apirest.php/", "ANSIBLE_GLPI_APPTOKEN": "xxxxxxxxxxxxxxxxxxxxxxx", "ANSIBLE_GLPI_USERTOKEN": "yyyyyyyyyyyyyyyyyyyyyyy", "ANSIBLE_GLPI_FILE": "/runner/glpi-api.yml"}'
 ----
 
-The prevous source variables are the following `yaml`.
+The previous source variables are the following `yaml`.
 
 [source,yaml]
 ----
@@ -122,3 +121,7 @@ ANSIBLE_GLPI_FILE: /runner/glpi-api.yml <4>
 <2> Application Token
 <3> User Token
 <4> Location of the glpi-api.yaml file
+
+== Sync the inventory
+
+TBD
